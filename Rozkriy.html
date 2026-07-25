@@ -380,7 +380,7 @@
     </section>
   </div>
 </div>
-
+<script src="js/optimizer.js"></script>
 <script>
   const INITIAL_SHEET_NAME = <?!= JSON.stringify(sheetName) ?>;
   const INITIAL_SPREADSHEET_ID = <?!= JSON.stringify(spreadsheetId) ?>;
@@ -441,95 +441,33 @@
     );
   }
 
-  function pack(items, sheetW, sheetH, kerf, margin) {
-    const usableW = sheetW - margin * 2;
-    const usableH = sheetH - margin * 2;
-    const sheets = [];
+ function pack(items, sheetW, sheetH, kerf, margin) {
+  const result = WestlineOptimizer.optimize(
+    {
+      sheetWidth: sheetW,
+      sheetHeight: sheetH,
+      kerf: kerf,
+      edgeMargin: margin,
+      allowRotation: true
+    },
+    items.map((item, index) => ({
+      id: index + 1,
+      name: item.name,
+      width: item.w,
+      height: item.h,
+      quantity: 1,
+      canRotate: item.rotate
+    }))
+  );
 
-    for (const original of items) {
-      let placed = false;
-
-      for (const sheet of sheets) {
-        if (tryPlace(sheet, original, usableW, usableH, kerf, margin)) {
-          placed = true;
-          break;
-        }
-      }
-
-      if (!placed) {
-        const sheet = { shelves: [], placements: [] };
-
-        if (!tryPlace(sheet, original, usableW, usableH, kerf, margin)) {
-          throw new Error(
-            `Деталь ${original.name} (${original.w}×${original.h}) не поміщається на плиту.`
-          );
-        }
-
-        sheets.push(sheet);
-      }
-    }
-
-    return sheets;
-  }
-
-  function tryPlace(sheet, item, usableW, usableH, kerf, margin) {
-    const variants = [{ w: item.w, h: item.h, rotated: false }];
-
-    if (item.rotate && item.w !== item.h) {
-      variants.push({ w: item.h, h: item.w, rotated: true });
-    }
-
-    for (const variant of variants) {
-      for (const shelf of sheet.shelves) {
-        if (
-          variant.h <= shelf.height &&
-          shelf.x + variant.w <= margin + usableW
-        ) {
-          sheet.placements.push({
-            ...item,
-            ...variant,
-            x: shelf.x,
-            y: shelf.y
-          });
-
-          shelf.x += variant.w + kerf;
-          return true;
-        }
-      }
-    }
-
-    const usedH = sheet.shelves.reduce(
-      (sum, shelf) => sum + shelf.height + kerf,
-      0
-    );
-
-    for (const variant of variants) {
-      if (
-        variant.w <= usableW &&
-        usedH + variant.h <= usableH
-      ) {
-        const y = margin + usedH;
-
-        sheet.shelves.push({
-          x: margin + variant.w + kerf,
-          y: y,
-          height: variant.h
-        });
-
-        sheet.placements.push({
-          ...item,
-          ...variant,
-          x: margin,
-          y: y
-        });
-
-        return true;
-      }
-    }
-
-    return false;
-  }
-
+  return result.sheets.map(sheet => ({
+    placements: sheet.placements.map(item => ({
+      ...item,
+      w: item.placedWidth,
+      h: item.placedHeight
+    }))
+  }));
+}
   function render(sheets, sheetW, sheetH) {
     const result = document.getElementById('result');
     result.innerHTML = '';
