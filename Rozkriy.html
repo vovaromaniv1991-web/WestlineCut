@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Westline — розкрій плити</title>
+
+  <style>
+    :root {
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#d1d5db;
+      --accent:#166534;
+      --danger:#991b1b;
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .wrap {
+      max-width:1500px;
+      margin:24px auto;
+      padding:0 16px;
+    }
+
+    h1 { margin:0 0 16px; }
+
+    .grid {
+      display:grid;
+      grid-template-columns:520px minmax(0,1fr);
+      gap:18px;
+    }
+
+    .card {
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:16px;
+    }
+
+    label {
+      display:block;
+      font-weight:700;
+      margin:10px 0 5px;
+    }
+
+    input, button { font:inherit; }
+
+    input {
+      width:100%;
+      padding:9px;
+      border:1px solid var(--line);
+      border-radius:8px;
+    }
+
+    .row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    button {
+      border:0;
+      border-radius:8px;
+      padding:10px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .primary {
+      width:100%;
+      margin-top:14px;
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .secondary { background:#e5e7eb; }
+
+    .delete {
+      width:36px;
+      padding:8px 0;
+      background:#fee2e2;
+      color:var(--danger);
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      margin-top:14px;
+    }
+
+    th, td {
+      border-bottom:1px solid var(--line);
+      padding:6px 4px;
+      text-align:left;
+      vertical-align:middle;
+    }
+
+    th { font-size:13px; }
+
+    td input {
+      width:100%;
+      min-width:0;
+      padding:7px 6px;
+    }
+
+    th:nth-child(1), td:nth-child(1) { width:31%; }
+    th:nth-child(2), td:nth-child(2) { width:15%; }
+    th:nth-child(3), td:nth-child(3) { width:15%; }
+    th:nth-child(4), td:nth-child(4) { width:13%; }
+    th:nth-child(5), td:nth-child(5) { width:16%; text-align:center; }
+    th:nth-child(6), td:nth-child(6) { width:10%; text-align:center; }
+
+    td:nth-child(5) input {
+      width:18px;
+      height:18px;
+    }
+
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .stat {
+      padding:12px;
+      background:#f9fafb;
+      border:1px solid var(--line);
+      border-radius:10px;
+    }
+
+    .stat b {
+      display:block;
+      margin-top:4px;
+      font-size:20px;
+    }
+
+    .hint {
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .loading {
+      padding:20px;
+      text-align:center;
+      font-weight:700;
+    }
+
+    .error {
+      padding:14px;
+      border:1px solid #fecaca;
+      border-radius:8px;
+      background:#fef2f2;
+      color:#991b1b;
+    }
+
+    .sheet-title {
+      margin-top:18px;
+      font-weight:700;
+    }
+
+    .sheet-wrap {
+      position:relative;
+      display:inline-block;
+      padding:30px 0 0 34px;
+      margin:18px 0;
+    }
+
+    .sheet {
+      position:relative;
+      border:2px solid #111827;
+      background:#fff;
+      overflow:visible;
+    }
+
+    .part {
+      position:absolute;
+      border:1px solid #111827;
+      background:#dbeafe;
+      overflow:visible;
+    }
+
+    .part-name {
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px 18px 8px;
+      text-align:center;
+      font-size:11px;
+      overflow:hidden;
+    }
+
+    .dim-top {
+      position:absolute;
+      left:50%;
+      top:2px;
+      transform:translateX(-50%);
+      padding:0 2px;
+      background:rgba(255,255,255,.72);
+      color:#0645ff;
+      font-size:13px;
+      font-weight:700;
+      line-height:1;
+    }
+
+    .dim-left {
+      position:absolute;
+      left:2px;
+      top:50%;
+      transform:translateY(-50%) rotate(-90deg);
+      padding:0 2px;
+      background:rgba(255,255,255,.72);
+      color:#0645ff;
+      font-size:13px;
+      font-weight:700;
+      line-height:1;
+    }
+
+    .sheet-dim-top {
+      position:absolute;
+      top:6px;
+      left:34px;
+      color:#b91c1c;
+      font-weight:700;
+    }
+
+    .sheet-dim-left {
+      position:absolute;
+      left:2px;
+      top:50%;
+      transform:translateY(-50%) rotate(-90deg);
+      color:#b91c1c;
+      font-weight:700;
+    }
+
+    .cut-guide {
+      position:absolute;
+      background:#ef4444;
+      opacity:.35;
+      pointer-events:none;
+    }
+
+    .cut-guide.h {
+      height:1px;
+      left:0;
+      right:0;
+    }
+
+    .cut-guide.v {
+      width:1px;
+      top:0;
+      bottom:0;
+    }
+
+    @media (max-width:900px) {
+      .grid { grid-template-columns:1fr; }
+      .stats { grid-template-columns:1fr 1fr; }
+    }
+
+    @media print {
+      body { background:#fff; }
+      .input-card, .no-print { display:none !important; }
+      .grid { display:block; }
+      .card { border:0; padding:0; }
+      .wrap { max-width:none; margin:0; padding:0; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>Westline — розкрій плити</h1>
+
+  <div id="loading" class="card loading">
+    Завантажую деталі із замовлення…
+  </div>
+
+  <div id="app" class="grid" style="display:none">
+    <section class="card input-card">
+      <h2>Замовлення</h2>
+
+      <div class="row">
+        <div>
+          <label>Номер замовлення</label>
+          <input id="orderNumber" type="text">
+        </div>
+
+        <div>
+          <label>Замовник</label>
+          <input id="customer" type="text">
+        </div>
+      </div>
+
+      <label>Матеріал</label>
+      <input id="material" type="text" value="МДФ 19 мм">
+
+      <h2>Параметри плити</h2>
+
+      <div class="row">
+        <div>
+          <label>Довжина, мм</label>
+          <input id="sheetW" type="number" value="2800">
+        </div>
+
+        <div>
+          <label>Ширина, мм</label>
+          <input id="sheetH" type="number" value="2070">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Пропил, мм</label>
+          <input id="kerf" type="number" value="4">
+        </div>
+
+        <div>
+          <label>Відступ від краю, мм</label>
+          <input id="margin" type="number" value="10">
+        </div>
+      </div>
+
+      <h2>Деталі</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Назва</th>
+            <th>Довж.</th>
+            <th>Шир.</th>
+            <th>К-сть</th>
+            <th>Поворот</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody id="partsBody"></tbody>
+      </table>
+
+      <button class="secondary" id="addPart">+ Додати деталь</button>
+      <button class="primary" id="calculate">Розрахувати розкрій</button>
+
+      <p class="hint">
+        Поворот означає, що деталь можна розвернути на 90°.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="no-print" style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <h2>Результат</h2>
+        <button class="secondary" onclick="window.print()">Друк / PDF</button>
+      </div>
+
+      <div id="orderHeader" class="hint" style="margin-bottom:10px"></div>
+
+      <div class="stats">
+        <div class="stat">Плит<b id="statSheets">0</b></div>
+        <div class="stat">Деталей<b id="statParts">0</b></div>
+        <div class="stat">Використано<b id="statUse">0%</b></div>
+        <div class="stat">Відходи<b id="statWaste">0%</b></div>
+      </div>
+
+      <div id="result">
+        <p class="hint">Натисни «Розрахувати розкрій».</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  const INITIAL_SHEET_NAME = <?!= JSON.stringify(sheetName) ?>;
+  const INITIAL_SPREADSHEET_ID = <?!= JSON.stringify(spreadsheetId) ?>;
+
+  const partsBody = document.getElementById('partsBody');
+
+  function addRow(data = {}) {
+    const part = {
+      name: data.name || 'Фасад',
+      w: Number(data.w) || 720,
+      h: Number(data.h) || 396,
+      qty: Number(data.qty) || 1,
+      rotate: data.rotate !== false
+    };
+
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td><input value="${escapeAttribute(part.name)}"></td>
+      <td><input type="number" value="${part.w}" min="1"></td>
+      <td><input type="number" value="${part.h}" min="1"></td>
+      <td><input type="number" value="${part.qty}" min="1"></td>
+      <td><input type="checkbox" ${part.rotate ? 'checked' : ''}></td>
+      <td><button class="delete">×</button></td>
+    `;
+
+    tr.querySelector('.delete').onclick = () => tr.remove();
+    partsBody.appendChild(tr);
+  }
+
+  function escapeAttribute(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function readParts() {
+    const items = [];
+
+    [...partsBody.rows].forEach((tr, idx) => {
+      const inputs = tr.querySelectorAll('input');
+
+      const name = inputs[0].value || `Деталь ${idx + 1}`;
+      const w = Number(inputs[1].value);
+      const h = Number(inputs[2].value);
+      const qty = Number(inputs[3].value);
+      const rotate = inputs[4].checked;
+
+      for (let i = 0; i < qty; i++) {
+        items.push({ name, w, h, rotate });
+      }
+    });
+
+    return items.sort(
+      (a, b) => Math.max(b.w, b.h) - Math.max(a.w, a.h)
+    );
+  }
+
+  function pack(items, sheetW, sheetH, kerf, margin) {
+    const usableW = sheetW - margin * 2;
+    const usableH = sheetH - margin * 2;
+    const sheets = [];
+
+    for (const original of items) {
+      let placed = false;
+
+      for (const sheet of sheets) {
+        if (tryPlace(sheet, original, usableW, usableH, kerf, margin)) {
+          placed = true;
+          break;
+        }
+      }
+
+      if (!placed) {
+        const sheet = { shelves: [], placements: [] };
+
+        if (!tryPlace(sheet, original, usableW, usableH, kerf, margin)) {
+          throw new Error(
+            `Деталь ${original.name} (${original.w}×${original.h}) не поміщається на плиту.`
+          );
+        }
+
+        sheets.push(sheet);
+      }
+    }
+
+    return sheets;
+  }
+
+  function tryPlace(sheet, item, usableW, usableH, kerf, margin) {
+    const variants = [{ w: item.w, h: item.h, rotated: false }];
+
+    if (item.rotate && item.w !== item.h) {
+      variants.push({ w: item.h, h: item.w, rotated: true });
+    }
+
+    for (const variant of variants) {
+      for (const shelf of sheet.shelves) {
+        if (
+          variant.h <= shelf.height &&
+          shelf.x + variant.w <= margin + usableW
+        ) {
+          sheet.placements.push({
+            ...item,
+            ...variant,
+            x: shelf.x,
+            y: shelf.y
+          });
+
+          shelf.x += variant.w + kerf;
+          return true;
+        }
+      }
+    }
+
+    const usedH = sheet.shelves.reduce(
+      (sum, shelf) => sum + shelf.height + kerf,
+      0
+    );
+
+    for (const variant of variants) {
+      if (
+        variant.w <= usableW &&
+        usedH + variant.h <= usableH
+      ) {
+        const y = margin + usedH;
+
+        sheet.shelves.push({
+          x: margin + variant.w + kerf,
+          y: y,
+          height: variant.h
+        });
+
+        sheet.placements.push({
+          ...item,
+          ...variant,
+          x: margin,
+          y: y
+        });
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function render(sheets, sheetW, sheetH) {
+    const result = document.getElementById('result');
+    result.innerHTML = '';
+
+    const maxPx = 820;
+    const scale = Math.min(maxPx / sheetW, 520 / sheetH);
+
+    let totalArea = 0;
+    let partCount = 0;
+
+    sheets.forEach((sheet, index) => {
+      const title = document.createElement('div');
+      title.className = 'sheet-title';
+      title.textContent =
+        `Плита №${index + 1} — ${sheetW} × ${sheetH} мм`;
+
+      result.appendChild(title);
+
+      const wrap = document.createElement('div');
+      wrap.className = 'sheet-wrap';
+
+      const topDim = document.createElement('div');
+      topDim.className = 'sheet-dim-top';
+      topDim.textContent = sheetW;
+      wrap.appendChild(topDim);
+
+      const leftDim = document.createElement('div');
+      leftDim.className = 'sheet-dim-left';
+      leftDim.textContent = sheetH;
+      wrap.appendChild(leftDim);
+
+      const sheetEl = document.createElement('div');
+      sheetEl.className = 'sheet';
+      sheetEl.style.width = `${sheetW * scale}px`;
+      sheetEl.style.height = `${sheetH * scale}px`;
+
+      const horizontalCuts = new Set();
+      const verticalCuts = new Set();
+
+      sheet.placements.forEach(part => {
+        const el = document.createElement('div');
+        el.className = 'part';
+
+        el.style.left = `${part.x * scale}px`;
+        el.style.top = `${part.y * scale}px`;
+        el.style.width = `${part.w * scale}px`;
+        el.style.height = `${part.h * scale}px`;
+
+        el.innerHTML = `
+          <span class="dim-top">${part.w}</span>
+          <span class="dim-left">${part.h}</span>
+          <span class="part-name">${escapeAttribute(part.name)}</span>
+        `;
+
+        sheetEl.appendChild(el);
+
+        horizontalCuts.add(Math.round((part.y + part.h) * scale));
+        verticalCuts.add(Math.round((part.x + part.w) * scale));
+
+        totalArea += part.w * part.h;
+        partCount++;
+      });
+
+      horizontalCuts.forEach(y => {
+        if (y > 0 && y < sheetH * scale) {
+          const guide = document.createElement('div');
+          guide.className = 'cut-guide h';
+          guide.style.top = `${y}px`;
+          sheetEl.appendChild(guide);
+        }
+      });
+
+      verticalCuts.forEach(x => {
+        if (x > 0 && x < sheetW * scale) {
+          const guide = document.createElement('div');
+          guide.className = 'cut-guide v';
+          guide.style.left = `${x}px`;
+          sheetEl.appendChild(guide);
+        }
+      });
+
+      wrap.appendChild(sheetEl);
+      result.appendChild(wrap);
+    });
+
+    const sheetArea = sheets.length * sheetW * sheetH;
+    const use = sheetArea ? totalArea / sheetArea * 100 : 0;
+
+    document.getElementById('statSheets').textContent = sheets.length;
+    document.getElementById('statParts').textContent = partCount;
+    document.getElementById('statUse').textContent =
+      use.toFixed(1) + '%';
+    document.getElementById('statWaste').textContent =
+      (100 - use).toFixed(1) + '%';
+  }
+
+  function calculate() {
+    try {
+      const sheetW = Number(document.getElementById('sheetW').value);
+      const sheetH = Number(document.getElementById('sheetH').value);
+      const kerf = Number(document.getElementById('kerf').value);
+      const margin = Number(document.getElementById('margin').value);
+
+      const items = readParts();
+
+      if (!items.length) {
+        throw new Error('Додай хоча б одну деталь.');
+      }
+
+      const orderNumber =
+        document.getElementById('orderNumber').value.trim();
+
+      const customer =
+        document.getElementById('customer').value.trim();
+
+      const material =
+        document.getElementById('material').value.trim();
+
+      document.getElementById('orderHeader').textContent =
+        `${orderNumber ? 'Замовлення № ' + orderNumber : 'Замовлення без номера'}`
+        + `${customer ? ' • ' + customer : ''}`
+        + `${material ? ' • ' + material : ''}`;
+
+      const sheets = pack(items, sheetW, sheetH, kerf, margin);
+      render(sheets, sheetW, sheetH);
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  function fillFromOrder(data) {
+    document.getElementById('orderNumber').value =
+      data.orderNumber || '';
+
+    document.getElementById('customer').value =
+      data.customer || '';
+
+    document.getElementById('material').value =
+      data.material || 'МДФ';
+
+    partsBody.innerHTML = '';
+
+    (data.parts || []).forEach(addRow);
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'grid';
+
+    calculate();
+  }
+
+  function showLoadError(error) {
+    const loading = document.getElementById('loading');
+
+    loading.className = 'card error';
+    loading.innerHTML =
+      '<b>Не вдалося завантажити замовлення.</b><br><br>' +
+      escapeAttribute(error && error.message ? error.message : error);
+  }
+
+  document.getElementById('addPart').onclick = () => addRow();
+  document.getElementById('calculate').onclick = calculate;
+
+  if (INITIAL_SHEET_NAME && INITIAL_SPREADSHEET_ID) {
+    google.script.run
+      .withSuccessHandler(fillFromOrder)
+      .withFailureHandler(showLoadError)
+      .otrymatyDaniRozkroyu(
+        INITIAL_SPREADSHEET_ID,
+        INITIAL_SHEET_NAME
+      );
+  } else {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'grid';
+    addRow();
+  }
+</script>
+</body>
+</html>
